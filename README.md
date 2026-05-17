@@ -7,8 +7,8 @@ The upload endpoint binds to `127.0.0.1` only — it's never exposed publicly. n
 ## How it works
 
 ```
-your app  →  POST http://127.0.0.1:3001/upload  →  saved to /var/www/assets/<uuid>.ext
-internet  →  GET  https://yourdomain.com/assets/<uuid>.ext  →  served by nginx
+your app  →  POST http://127.0.0.1:3001/upload  →  saved to UPLOAD_DIR/<name>.ext
+internet  →  GET  https://yourdomain.com/assets/<name>.ext  →  served by nginx
 ```
 
 ## Setup
@@ -24,6 +24,8 @@ cp .env.example .env
 # Edit .env — at minimum set BASE_URL to your domain
 ```
 
+> `.env` is loaded by `src/config.js` at startup — no CLI flags or extra packages needed.
+
 **3. Add nginx static file serving**
 
 Add `deploy/nginx-assets.conf` inside your existing `server {}` block, then reload:
@@ -33,9 +35,8 @@ sudo nginx -t && sudo systemctl reload nginx
 
 **4. Start**
 ```bash
-npm start
-# or for development:
-npm run dev
+npm start          # production
+npm run dev        # development with file watching
 ```
 
 ## Deploy
@@ -44,30 +45,46 @@ npm run dev
 SSH_HOST=1.2.3.4 SSH_USER=deploy REMOTE_PATH=/srv/asset-service ./scripts/deploy.sh
 ```
 
+The script rsyncs source files, installs prod deps, then does `pm2 reload` (or `pm2 start` on first run). Your `.env` on the server is never touched by rsync.
+
 First time on the server:
 ```bash
 sudo mkdir -p /var/www/assets && sudo chown deploy:deploy /var/www/assets
 sudo mkdir -p /srv/asset-service
 # create /srv/asset-service/.env with your production values
+pm2 start deploy/ecosystem.config.cjs
+pm2 save
 ```
 
 ## API
 
 ### `POST /upload`
 
-Accepts `multipart/form-data` with a `file` field.
+Accepts `multipart/form-data` with a `file` field and an optional `name` field.
 
 ```bash
+# Auto-named (UUID)
 curl -F "file=@photo.jpg" http://127.0.0.1:3001/upload
+
+# Custom name
+curl -F "name=hero-banner" -F "file=@photo.jpg" http://127.0.0.1:3001/upload
 ```
 
 ```json
 {
-  "url": "https://yourdomain.com/assets/3f2e1a4b-....jpg",
-  "filename": "3f2e1a4b-....jpg",
+  "url": "https://yourdomain.com/assets/hero-banner.jpg",
+  "filename": "hero-banner.jpg",
   "size": 84231
 }
 ```
+
+### `GET /files`
+
+Returns all uploaded files sorted newest-first.
+
+### `DELETE /files/:filename`
+
+Deletes a file from disk.
 
 ### `GET /health`
 
@@ -80,7 +97,7 @@ curl -F "file=@photo.jpg" http://127.0.0.1:3001/upload
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `BASE_URL` | `http://localhost` | Prepended to filenames in returned URLs |
-| `UPLOAD_DIR` | `/var/www/assets` | Where files are stored — must match nginx `alias` |
+| `UPLOAD_DIR` | `./uploads` | Where files are stored — must match nginx `alias` on the server |
 | `PORT` | `3001` | Listen port |
 | `HOST` | `127.0.0.1` | Bind address |
 | `MAX_FILE_SIZE_MB` | `50` | Upload size limit |
