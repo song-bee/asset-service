@@ -13,7 +13,7 @@ router.get('/', async (_req, res) => {
         const stat = await fs.stat(path.join(config.uploadDir, filename))
         return {
           filename,
-          url: `${config.baseUrl}/assets/${filename}`,
+          url: `${config.baseUrl}/${config.assetPath}/${filename}`,
           size: stat.size,
           uploadedAt: stat.birthtime,
         }
