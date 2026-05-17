@@ -25,5 +25,6 @@ export const config = {
   host: process.env.HOST || '127.0.0.1',
   uploadDir: process.env.UPLOAD_DIR || './uploads',
   baseUrl: process.env.BASE_URL || 'http://localhost',
+  assetPath: (process.env.ASSET_PATH || 'assets').replace(/^\/|\/$/g, ''),
   maxFileSizeMb: parseInt(process.env.MAX_FILE_SIZE_MB || '50'),
 }

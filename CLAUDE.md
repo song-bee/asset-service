@@ -53,6 +53,7 @@ Uploads are given UUID-based filenames to avoid collisions. No database — stat
 |-----|---------|---------|
 | `UPLOAD_DIR` | `./uploads` | Where files are stored; must match nginx `alias` |
 | `BASE_URL` | `http://localhost` | Prepended to UUID filename in the returned URL |
+| `ASSET_PATH` | `assets` | URL path segment for public files (e.g. `files` → `https://example.com/files/photo.jpg`); must match nginx `location` path |
 | `MAX_FILE_SIZE_MB` | `50` | multer file size limit |
 | `HOST` | `127.0.0.1` | Bind address |
 | `PORT` | `3001` | Listen port |

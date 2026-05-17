@@ -45,7 +45,7 @@ router.post('/', upload.single('file'), async (req, res) => {
   }
 
   res.json({
-    url: `${config.baseUrl}/assets/${finalFilename}`,
+    url: `${config.baseUrl}/${config.assetPath}/${finalFilename}`,
     filename: finalFilename,
     size: req.file.size,
   })
