@@ -22,10 +22,13 @@ The script rsyncs `src/`, `package.json`, and `deploy/ecosystem.config.cjs` to t
 
 ```
 src/
-  app.js              entry point — mounts routes, calls listen
+  app.js              entry point — mounts routes, serves public/, calls listen
   config.js           all env vars parsed in one place
+  public/
+    index.html        web UI for browsing and uploading files
   routes/
     upload.js         POST /upload — multer handler, returns { url, filename, size }
+    files.js          GET /files — list files; DELETE /files/:filename — delete a file
 deploy/
   ecosystem.config.cjs  pm2 config
   nginx-assets.conf     nginx snippet (add inside your server {} block)
@@ -35,7 +38,12 @@ scripts/
 
 ## Architecture
 
-Single Express app bound to `127.0.0.1` — never exposed publicly. nginx serves `GET /assets/{filename}` directly from `UPLOAD_DIR` as static files; Node is not in the read path.
+Single Express app bound to `127.0.0.1`. nginx handles four concerns:
+
+- `GET /assets/{filename}` — served directly from `UPLOAD_DIR` (Node not in read path)
+- `GET /asset-service/` — proxied to Node's `express.static` (web UI)
+- `POST /upload` — proxied to Node upload handler
+- `GET|DELETE /files` — proxied to Node files handler
 
 Uploads are given UUID-based filenames to avoid collisions. No database — state is the filesystem.
 
@@ -43,7 +51,7 @@ Uploads are given UUID-based filenames to avoid collisions. No database — stat
 
 | Var | Default | Purpose |
 |-----|---------|---------|
-| `UPLOAD_DIR` | `/var/www/assets` | Where files are stored; must match nginx `alias` |
+| `UPLOAD_DIR` | `./uploads` | Where files are stored; must match nginx `alias` |
 | `BASE_URL` | `http://localhost` | Prepended to UUID filename in the returned URL |
 | `MAX_FILE_SIZE_MB` | `50` | multer file size limit |
 | `HOST` | `127.0.0.1` | Bind address |

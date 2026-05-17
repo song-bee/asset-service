@@ -1,6 +1,6 @@
-# asset-service
+# Private Asset Service
 
-Private upload API that saves files locally and serves them as public static URLs under your main domain.
+Private upload API that saves files locally and serves them as public static URLs under your main domain. Includes a web UI for browsing and managing uploaded files.
 
 The upload endpoint binds to `127.0.0.1` only — it's never exposed publicly. nginx serves uploaded files directly from disk as static assets.
 
@@ -8,7 +8,8 @@ The upload endpoint binds to `127.0.0.1` only — it's never exposed publicly. n
 
 ```
 your app  →  POST http://127.0.0.1:3001/upload  →  saved to UPLOAD_DIR/<name>.ext
-internet  →  GET  https://yourdomain.com/assets/<name>.ext  →  served by nginx
+internet  →  GET  https://yourdomain.com/assets/<name>.ext  →  served by nginx (no Node)
+browser   →  GET  https://yourdomain.com/asset-service/    →  web UI proxied via nginx
 ```
 
 ## Setup
@@ -26,12 +27,18 @@ cp .env.example .env
 
 > `.env` is loaded by `src/config.js` at startup — no CLI flags or extra packages needed.
 
-**3. Add nginx static file serving**
+**3. Add nginx config**
 
 Add `deploy/nginx-assets.conf` inside your existing `server {}` block, then reload:
 ```bash
 sudo nginx -t && sudo systemctl reload nginx
 ```
+
+The nginx snippet configures four locations:
+- `/assets/` — static files served directly from `UPLOAD_DIR`
+- `/asset-service/` — web UI proxied to Node
+- `/upload` — upload API proxied to Node
+- `/files` — file list/delete API proxied to Node
 
 **4. Start**
 ```bash
@@ -82,9 +89,20 @@ curl -F "name=hero-banner" -F "file=@photo.jpg" http://127.0.0.1:3001/upload
 
 Returns all uploaded files sorted newest-first.
 
+```json
+[
+  {
+    "filename": "hero-banner.jpg",
+    "url": "https://yourdomain.com/assets/hero-banner.jpg",
+    "size": 84231,
+    "uploadedAt": "2026-05-17T10:00:00.000Z"
+  }
+]
+```
+
 ### `DELETE /files/:filename`
 
-Deletes a file from disk.
+Deletes a file from disk. Returns `{ "deleted": "<filename>" }` or `404` if not found.
 
 ### `GET /health`
 
