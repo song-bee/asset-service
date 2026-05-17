@@ -34,11 +34,9 @@ Add `deploy/nginx-assets.conf` inside your existing `server {}` block, then relo
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-The nginx snippet configures four locations:
-- `/assets/` — static files served directly from `UPLOAD_DIR`
-- `/asset-service/` — web UI proxied to Node
-- `/upload` — upload API proxied to Node
-- `/files` — file list/delete API proxied to Node
+The nginx snippet configures two locations:
+- `/assets/` — static files served directly from `UPLOAD_DIR` (Node not in the read path)
+- `/asset-service/` — all Node traffic (web UI, upload, file list/delete) via a single proxy block
 
 **4. Start**
 ```bash

@@ -38,12 +38,12 @@ scripts/
 
 ## Architecture
 
-Single Express app bound to `127.0.0.1`. nginx handles four concerns:
+Single Express app bound to `127.0.0.1`. nginx handles two concerns:
 
 - `GET /assets/{filename}` — served directly from `UPLOAD_DIR` (Node not in read path)
-- `GET /asset-service/` — proxied to Node's `express.static` (web UI)
-- `POST /upload` — proxied to Node upload handler
-- `GET|DELETE /files` — proxied to Node files handler
+- `GET|POST|DELETE /asset-service/*` — all proxied to Node via a single location block; the trailing slash in `proxy_pass` strips the prefix so Node sees `/`, `/upload`, `/files`, etc.
+
+The UI uses relative fetch paths (`upload`, `files`) so all API calls route through the same `/asset-service/` nginx block.
 
 Uploads are given UUID-based filenames to avoid collisions. No database — state is the filesystem.
 
