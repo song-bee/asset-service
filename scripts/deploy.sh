@@ -8,11 +8,10 @@ REMOTE_PATH="${REMOTE_PATH:-/srv/asset-service}"
 # ─────────────────────────────────────────────────────────────────────────────
 
 echo "→ Syncing files to ${SSH_USER}@${SSH_HOST}:${REMOTE_PATH}"
-rsync -az --delete \
-  --exclude='.env' \
-  --exclude='node_modules' \
-  --exclude='.git' \
-  src/ package.json deploy/ecosystem.config.cjs \
+rsync -az --relative \
+  src \
+  package.json \
+  deploy/ecosystem.config.cjs \
   "${SSH_USER}@${SSH_HOST}:${REMOTE_PATH}/"
 
 echo "→ Installing dependencies & reloading pm2"
