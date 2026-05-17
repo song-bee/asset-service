@@ -306,6 +306,8 @@
       transition: background 0.12s, opacity 0.12s;
       white-space: nowrap;
     }
+    .btn-open   { background: var(--bg); border-color: var(--border); color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; }
+    .btn-open:hover { background: #ebebeb; }
     .btn-copy   { background: var(--bg); border-color: var(--border); color: var(--text); }
     .btn-copy:hover { background: #ebebeb; }
     .btn-delete { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
@@ -413,6 +415,7 @@
       uploading:     'Uploading…',
       filesTitle:    'Files',
       fileCount:     (n) => `${n} file${n !== 1 ? 's' : ''}`,
+      openBtn:       'Open',
       copyUrl:       'Copy URL',
       copied:        'Copied!',
       deleteBtn:     'Delete',
@@ -434,6 +437,7 @@
       uploading:     '上传中…',
       filesTitle:    '文件列表',
       fileCount:     (n) => `共 ${n} 个文件`,
+      openBtn:       '打开',
       copyUrl:       '复制链接',
       copied:        '已复制',
       deleteBtn:     '删除',
@@ -592,6 +596,7 @@
               <div class="file-info">${formatSize(f.size)} · ${formatDate(f.uploadedAt)}</div>
             </div>
             <div class="file-actions">
+              <a class="btn btn-open" href="${esc(f.url)}" target="_blank" rel="noopener">${t('openBtn')}</a>
               <button class="btn btn-copy" onclick="copyUrl('${esc(f.url)}', this)">${t('copyUrl')}</button>
               <button class="btn btn-delete" onclick="deleteFile('${esc(f.filename)}', this)">${t('deleteBtn')}</button>
             </div>
